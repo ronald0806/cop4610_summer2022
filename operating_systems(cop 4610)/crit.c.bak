@@ -1,0 +1,78 @@
+```
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+#include <semaphore.h> // for semaphore functions
+
+//Compile the code by linking with -lpthread -lrt
+//sem_wait(); //lock semaphore
+//sem_post(); //release or signal a semaphore
+//sem_destroy(); //destroys a semaphore
+
+void doWork(int m_threads); 
+
+void doCriticalWork(); // must print the current thread id and the number of threads currently in m-section to the terminal using printf()
+
+// make enter (sem_wait) and leave (sem_post) functions
+
+// global variables
+sem_t semaphore; // defining semaphore object
+long counter = 0;
+int m = 3; // number of maximum threads
+
+int main(int argc, char** argv[]) {
+    sem_init(&semaphore, 0, 10); //initialize semaphore (int return type)
+    // sem points to a semaphore object to initialize
+    // This argument specifies whether or not the newly initialized semaphore is shared between processes or between threads. 
+    // A non-zero value means the semaphore is shared between processes and a value of zero means it is shared between threads. (int) 0
+    // Specifies the value to assign to the newly initialized semaphore. (unsigned int) 10
+
+    long i;
+    long n = 10; //number of threads
+    pthread_attr_t attr;
+    pthread_t *vtid = (pthread_t *) calloc(n, sizeof(pthread_t));
+    if(vtid == NULL) {
+        printf("Error: calloc failed\n\n");
+        exit(1);
+    }
+    
+    pthread_attr_init(&attr);
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
+    
+    for (i=0; i<n; i++) {
+    int r = pthread_create(&vtid[i], &attr, doWork, NULL);
+    if (r < 0) {              
+      printf("ERROR: pthread_create() returned %d\n", r);
+      exit(2);
+    }
+    }
+  
+    // now wait for the threads to complete:
+    for (i=0; i<n; i++) {
+        pthread_join(vtid[i], NULL);
+    }
+    printf("all threads finished\ncounter=%ld\n", counter);
+    pthread_attr_destroy(&attr);
+    free(vtid);
+    return 0;
+}
+
+
+void doCriticalWork() {
+    printf("Thread id: , number of threads in m-section: ");
+}
+
+void doWork(int m_threads) {
+    while(true) {
+        //enter function; //limit access to m threads 
+        // execute m-section
+        //doCriticalWork(...); //run by max m threads
+        //leave function; //leave m-section 
+        
+        //do more work
+    }
+    return;
+}
+```
